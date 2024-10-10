@@ -1,2 +1,2 @@
 # Установка системы мониторинга для OS Kali Linux
-## Docker + Grafana + Prometheus + Node Exporter
+## Docker (Grafana + Prometheus + Node Exporter)

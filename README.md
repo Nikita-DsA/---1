@@ -5,3 +5,11 @@
 ```
 sudo apt update 
 ```
+### Этап 2: Установка Docker 
+
+```
+sudo apt-install -y docker.io
+```
+```
+sudo systemctl enable docker --now
+```

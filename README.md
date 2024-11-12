@@ -131,3 +131,91 @@ sudo docker run -d -p 3000:3000 --name=grafana grafana/grafana-oss:latest
 ```
 sudo docker ps
 ```
+
+### 5. Конфигурация Docker-compose.yaml ( ко всему тому, что уже создалось ) 
+```
+  node-exporter:
+    image: prom/node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    container_name: exporter
+    hostname: exporter
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.ignored-mount-points
+      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+    ports:
+      - 9100:9100
+    restart: unless-stopped
+    environment:
+      TZ: "Europe/Moscow"
+    networks:
+      - default
+  vmagent:
+    container_name: vmagent
+    image: victoriametrics/vmagent:v1.105.0
+    depends_on:
+      - "victoriametrics"
+    ports:
+      - 8429:8429
+    volumes:
+      - vmagentdata:/vmagentdata
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--promscrape.config=/etc/prometheus/prometheus.yml"
+      - "--remoteWrite.url=http://victoriametrics:8428/api/v1/write"
+    restart: always
+  victoriametrics:
+    container_name: victoriametrics
+    image: victoriametrics/victoria-metrics:v1.105.0
+    ports:
+      - 8428:8428
+      - 8089:8089
+      - 8089:8089/udp
+      - 2003:2003
+      - 2003:2003/udp
+      - 4242:4242
+    volumes:
+      - vmdata:/storage
+    command:
+      - "--storageDataPath=/storage"
+      - "--graphiteListenAddr=:2003"
+      - "--opentsdbListenAddr=:4242"
+      - "--httpListenAddr=:8428"
+      - "--influxListenAddr=:8089"
+      - "--vmalert.proxyURL=http://vmalert:8880"
+    restart: always
+```
+
+
+### 6. Настройка визуализации в Grafana
+
+#### 1. Заходим на порт, зарезервированный нашей графаной (localhost:3000)
+
+#### 2. Добавляем Data Source --> Prometheus 
+
+#### 3. Добавляем DashBoard --> Add Visualisation --> Import DashBoard --> 1860
+
+
+### 7. ПРИЛОЖЕНИЕ (Необходимые скрины к проекту) 
+#### 1. Демонстрация работоспособности графаны
+
+<img width="1436" alt="image" src="https://github.com/user-attachments/assets/eaa616ee-42e1-47b9-853c-7ffbc74e402b">
+
+#### 2. Демонстрация docker-compose 
+
+<img width="1299" alt="image" src="https://github.com/user-attachments/assets/a5776843-24d7-456c-813b-73e132b6ab1d">
+
+### 3. Демонстрация Prometheus
+
+<img width="1440" alt="image" src="https://github.com/user-attachments/assets/520139bf-3f36-49e1-8360-6dbb926f0bb9">
+
+
+### 4. Демонстрация иерархии файлов
+
+<img width="569" alt="image" src="https://github.com/user-attachments/assets/61627314-edd3-4173-be5e-60087e1653f4">
+
+
